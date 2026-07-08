@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>V2V Admin Dashboard</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            padding:20px;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+        }
+
+        th,td{
+            border:1px solid black;
+            padding:10px;
+            text-align:center;
+        }
+
+        button{
+            padding:8px 12px;
+            cursor:pointer;
+        }
+
+    </style>
+
+</head>
+<body>
+
+<h1>Registered Vehicles</h1>
+
+<table>
+
+<thead>
+
+<tr>
+    <th>Name</th>
+    <th>Phone</th>
+    <th>Vehicle Number</th>
+    <th>Status</th>
+    <th>Login Time</th>
+    <th>Logout Time</th>
+    <th>Accident Type</th>
+    <th>Location</th>
+    <th>Action</th>
+</tr>
+
+</thead>
+
+<tbody id="vehicleTable">
+
+</tbody>
+
+</table>
+
+
+<script>
+
+async function loadVehicles() {
+
+    const vehicleResponse =
+        await fetch("http://localhost:3000/vehicles");
+
+    const vehicles =
+        await vehicleResponse.json();
+
+    const alertResponse =
+        await fetch("http://localhost:3000/alerts");
+
+    const alerts =
+        await alertResponse.json();
+
+    let rows = "";
+
+    vehicles.forEach(vehicle => {
+
+        const vehicleAlert =
+            alerts.find(
+                alert => alert.vehicleNumber === vehicle.vehicleNumber
+            );
+
+        rows += `
+        <tr>
+            <td>${vehicle.name}</td>
+            <td>${vehicle.phone}</td>
+            <td>${vehicle.vehicleNumber}</td>
+            <td>${vehicleAlert ? vehicleAlert.alertType : "No Accident"}</td>
+            <td>
+                ${vehicleAlert
+                    ? `${vehicleAlert.latitude}, ${vehicleAlert.longitude}`
+                    : "N/A"}
+            </td>
+            <td>
+                <button onclick="deleteVehicle('${vehicle._id}')">
+                    Delete
+                </button>
+            </td>
+        </tr>
+        `;
+    });
+
+    document.getElementById("vehicleTable").innerHTML = rows;
+}
+
+async function deleteVehicle(id){
+
+    await fetch(
+        `http://localhost:3000/vehicles/${id}`,
+        {
+            method:"DELETE"
+        }
+    );
+
+    loadVehicles();
+}
+
+
+loadVehicles();
+
+
+
+</script>
+
+</body>
+</html>
